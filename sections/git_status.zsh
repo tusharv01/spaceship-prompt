@@ -39,6 +39,44 @@ spaceship_git_status() {
   local INDEX git_branch="$vcs_info_msg_0_" git_status=""
 
   INDEX=$(command git status --porcelain -b 2> /dev/null)
+  
+  # Check for Git rebase
+if git rev-parse --git-dir >/dev/null 2>&1 && git rebase-merge --is-interactive; then
+  SPACESHIP_GIT_SYMBOL="⚙️"
+  SPACESHIP_GIT_SUFFIX="REBASE"
+  SPACESHIP_GIT_COLOR="yellow"
+# Check for Git merge
+elif git rev-parse --git-dir >/dev/null 2>&1 && [[ -f "$(git rev-parse --git-dir)/MERGE_HEAD" ]]; then
+  SPACESHIP_GIT_SYMBOL="⚓️"
+  SPACESHIP_GIT_SUFFIX="MERGING"
+  SPACESHIP_GIT_COLOR="red"
+# Check for Git revert
+elif git rev-parse --git-dir >/dev/null 2>&1 && [[ -f "$(git rev-parse --git-dir)/revert" ]]; then
+  SPACESHIP_GIT_SYMBOL="↩️"
+  SPACESHIP_GIT_SUFFIX="REVERT"
+  SPACESHIP_GIT_COLOR="red"
+# Check for Git am
+elif git rev-parse --git-dir >/dev/null 2>&1 && git rev-parse --verify refs/apply/ >/dev/null 2>&1; then
+  SPACESHIP_GIT_SYMBOL="🔘"
+  SPACESHIP_GIT_SUFFIX="AM"
+  SPACESHIP_GIT_COLOR="cyan"
+# Check for Git am or rebase
+elif git rev-parse --git-dir >/dev/null 2>&1 && git rev-parse --verify refs/sequencer/ >/dev/null 2>&1; then
+  SPACESHIP_GIT_SYMBOL="🔘"
+  SPACESHIP_GIT_SUFFIX="AM/REBASE"
+  SPACESHIP_GIT_COLOR="cyan"
+# Check for Git cherry-pick
+elif git rev-parse --git-dir >/dev/null 2>&1 && git cherry-pick --print-state >/dev/null 2>&1; then
+  SPACESHIP_GIT_SYMBOL="🍒"
+  SPACESHIP_GIT_SUFFIX="CHERRY-PICK"
+  SPACESHIP_GIT_COLOR="cyan"
+# Check for Git bisect
+elif git rev-parse --git-dir >/dev/null 2>&1 && git rev-parse --verify refs/bisect/ >/dev/null 2>&1; then
+  SPACESHIP_GIT_SYMBOL="🔍"
+  SPACESHIP_GIT_SUFFIX="BISECT"
+  SPACESHIP_GIT_COLOR="magenta"
+fi
+
 
   # Check for untracked files
   if $(echo "$INDEX" | command grep -E '^\?\? ' &> /dev/null); then
